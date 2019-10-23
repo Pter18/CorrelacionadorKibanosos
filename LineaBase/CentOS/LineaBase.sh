@@ -116,11 +116,13 @@ echo "Cambiando las Politicas de contraseñas"
 echo "Creando respaldo de politicas de passwords"
 #cp /etc/security/pwquality.conf /etc/security/pwquality.conf.original
 cp /etc/pam.d/system-auth /etc/pam.d/system-auth.original
+cp /etc/pam.d/password-auth /etc/pam.d/password-auth.original
 # Utilizar Mayusculas, Minusculas, Digitos y Cararcteres
-sed -i 's/type=/type= ucredit=-2 lcredit=-2 dcredit=-2 ocredit=-2/' /etc/pam.d/system-auth
+sed -i 's/type=/type= minlen=8 dcredit=-2 ucredit=-1 lcredit=-1 ocredit=-1/' /etc/pam.d/system-auth
 # Negando la utilización de contraseñas
 sed -i 's/use_authtok /use_authtok remember=5/' /etc/pam.d/system-auth
 # Denegar el acceso despues de colocar erroneamente la contraseña
+sed -i 's/type=/type= minlen=8 dcredit=-2 ucredit=-1 lcredit=-1 ocredit=-1/' /etc/pam.d/password-auth
 sed -i 's/pam_env.so/&\nauth       required        pam_tally2.so deny=5/g' /etc/pam.d/password-auth
 sed -i 's/required      pam_unix.so/&\naccount     required      pam_tally2.so/g' /etc/pam.d/password-auth
 
@@ -222,4 +224,4 @@ fi
 # https://shaunfreeman.name/blog/install-fail2ban-on-centos-6-with-plesk
 # https://ahmermansoor.blogspot.com/2019/06/install-fail2ban-to-secure-centos-7-servers.html
 # https://www.digitalocean.com/community/tutorials/how-to-set-password-policy-on-a-centos-6-vps
-# 
+# https://www.digitalocean.com/community/tutorials/how-fail2ban-works-to-protect-services-on-a-linux-server
