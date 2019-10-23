@@ -22,7 +22,7 @@ if [ "$4" == "bind" ]; then
 
 cat <<EOF >>/etc/named.conf
 options {
-    listen-on port 53 { 127.0.0.1; };
+    listen-on port 53 { 127.0.0.1; $2; };
     listen-on-v6 port 53 { ::1; };
     directory 	"/var/named";
     dump-file 	"/var/named/data/cache_dump.db";
@@ -30,7 +30,7 @@ options {
     memstatistics-file "/var/named/data/named_mem_stats.txt";
     recursing-file  "/var/named/data/named.recursing";
     secroots-file   "/var/named/data/named.secroots";
-    allow-query     { localhost; };
+    allow-query     { any; };
 
     recursion yes;
     forwarders {
@@ -255,11 +255,18 @@ if [[ `rpm -qa '(oraclelinux|sl|redhat|centos)-release(|-server)'|cut -d"." -f4`
     #ln -s /opt/zimbra/common/etc/java/cacerts /opt/zimbra/common/lib/jvm/java/jre/lib/security
     echo "Instalando Zimbra Collaboration junto con los archivos de configuracion"
     /opt/zimbra/libexec/zmsetup.pl -c /tmp/zcs/installZimbraScript
+    # Habilitar ldap y ldaps
+    su - zimbra -c 'zmlocalconfig -e ldap_bind_url="ldap://mail.kibanosos.net:389 ldaps://mail.kibanosos.net:636"'
+    su - zimbra -c 'ldap stop'
+    su - zimbra -c 'ldap start'
     echo "Reiniciando servicios"
     su - zimbra -c 'zmcontrol restart'
+    
 ## Agregar reglas al firewall de Centos
     echo "Agregando reglas para Firewalld"
     firewall-cmd --permanent --add-port={25,80,110,143,443,465,587,993,995,5222,5223,9071,7071}/tcp
+    firewall-cmd --zone=public --add-port=53/tcp --permanent
+    firewall-cmd --zone=public --add-port=53/udp --permanent
     firewall-cmd --reload
     clear
     echo "Tu puedes acceder a Zimbra Collaboration Server"
@@ -271,3 +278,13 @@ echo "Usa: ZimbraInstall.sh <dominio> <MailServerIP> <password> <bind>"
 echo "Ejemplo: ZimbraInstall.sh kibanosos.net 192.168.1.10 hola123., bind"
 
 fi
+
+
+##### Fuestes #####
+# https://www.linuxtechi.com/install-opensource-zimbra-mailserver-centos-7/
+# https://www.youtube.com/watch?v=67tbQnI-Ix4
+# https://blog.zimbra.com/2007/06/making-zimbra-bind-work-together/
+# https://www.zimbra.org/download/zimbra-collaboration
+# https://www.itsupportwale.com/blog/how-to-install-open-source-zimbra-8-8-mail-server-zcs-8-8-12-on-ubuntu-16-04-lts/
+# https://www.serverkaka.com/2019/05/install-and-configure-zimbra-mail-server-ubuntu-debian.html
+# https://www.linuxtechi.com/install-opensource-zimbra-mailserver-centos-7/
